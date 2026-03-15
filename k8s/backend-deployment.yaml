@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vexel-backend
+  labels:
+    app: vexel-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vexel-backend
+  template:
+    metadata:
+      labels:
+        app: vexel-backend
+    spec:
+      containers:
+      - name: vexel-backend
+        image: vexelinnovations/backend:latest
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - secretRef:
+            name: vexel-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vexel-backend
+spec:
+  selector:
+    app: vexel-backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP

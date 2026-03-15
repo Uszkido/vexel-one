@@ -1,0 +1,16 @@
+{
+    "name": "vexel-one-desktop",
+    "version": "1.0.0",
+    "description": "Vexel One Desktop App (Windows, macOS, Linux) powered by Tauri",
+    "scripts": {
+        "dev": "tauri dev",
+        "build": "tauri build",
+        "tauri": "tauri"
+    },
+    "devDependencies": {
+        "@tauri-apps/cli": "^2.0.0"
+    },
+    "dependencies": {
+        "@tauri-apps/api": "^2.0.0"
+    }
+}

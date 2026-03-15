@@ -1,0 +1,81 @@
+{
+    "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "beforeBuildCommand": "npm run build",
+        "devPath": "http://localhost:3000",
+        "distDir": "../frontend/out"
+    },
+    "package": {
+        "productName": "Vexel One",
+        "version": "1.0.0"
+    },
+    "tauri": {
+        "allowlist": {
+            "all": false,
+            "shell": {
+                "all": false,
+                "open": true
+            },
+            "fs": {
+                "all": true,
+                "scope": [
+                    "$APPDATA/*",
+                    "$DOCUMENT/*",
+                    "$DESKTOP/*"
+                ]
+            },
+            "dialog": {
+                "all": true
+            },
+            "notification": {
+                "all": true
+            }
+        },
+        "windows": [
+            {
+                "fullscreen": false,
+                "resizable": true,
+                "title": "Vexel One",
+                "width": 1400,
+                "height": 900,
+                "minWidth": 800,
+                "minHeight": 600
+            }
+        ],
+        "security": {
+            "csp": null
+        },
+        "bundle": {
+            "active": true,
+            "category": "ProductivityApp",
+            "copyright": "© 2026 Vexel Innovations",
+            "deb": {
+                "depends": []
+            },
+            "externalBin": [],
+            "icon": [
+                "icons/32x32.png",
+                "icons/128x128.png",
+                "icons/icon.ico"
+            ],
+            "identifier": "com.vexelinnovations.vexelone",
+            "longDescription": "Vexel One - The AI Operating System for the modern enterprise.",
+            "macOS": {
+                "entitlements": null,
+                "exceptionDomain": "",
+                "frameworks": [],
+                "providerShortName": null,
+                "signingIdentity": null
+            },
+            "resources": [],
+            "shortDescription": "Vexel One AI OS",
+            "targets": "all",
+            "windows": {
+                "certificateThumbprint": null,
+                "digestAlgorithm": "sha256",
+                "timestampUrl": ""
+            }
+        }
+    }
+}

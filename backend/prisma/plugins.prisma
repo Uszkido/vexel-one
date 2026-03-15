@@ -1,0 +1,27 @@
+// Plugin ecosystem
+model Plugin {
+  id               String   @id @default(cuid())
+  name             String
+  description      String
+  category         String   // AGRICULTURE, HOTEL, OFFICE
+  authorId         String
+  price            Float    @default(0)
+  webhooks         Json?    
+  requiredScopes   String[] // E.g ["read:camera", "write:task"]
+  published        Boolean  @default(false)
+  installations    OrganizationPlugin[]
+  createdAt        DateTime @default(now())
+}
+
+model OrganizationPlugin {
+  id             String       @id @default(cuid())
+  plugin         Plugin       @relation(fields: [pluginId], references: [id])
+  pluginId       String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  config         Json?        // Tenant-specific config for plugin
+  isActive       Boolean      @default(true)
+  installedAt    DateTime     @default(now())
+
+  @@unique([pluginId, organizationId])
+}

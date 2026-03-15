@@ -1,0 +1,471 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  DEVELOPER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  role          Role      @default(USER)
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Multi-tenancy
+  organizations OrganizationMember[]
+  
+  // Resources
+  conversations Conversation[]
+  agents        Agent[]
+  workflows     Workflow[]
+  apiKeys       ApiKey[]
+  
+  // Advanced Profile
+  cognitiveProfile UserCognitiveProfile?
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  members     OrganizationMember[]
+  workspaces  Workspace[]
+  
+  // Office Assistant Mode
+  knowledgeBases     KnowledgeBase[]
+  meetings           Meeting[]
+  integrations       Integration[]
+  productivity       ProductivityInsight[]
+  
+  // Security & Surveillance Module
+  cameras            Camera[]
+  securityEvents     SecurityEvent[]
+  
+  // Plugin Ecosystem
+  installedPlugins   OrganizationPlugin[]
+  
+  // Advanced Features
+  swarms             Swarm[]
+  digitalTwin        DigitalTwin?
+  anomalies          SystemAnomaly[]
+  
+  // 10 Expansion Features
+  voiceIdentities      VoiceIdentity[]
+  auditTrails          BlockchainAuditTrail[]
+  localModels          LocalModelSync[]
+  generatedUIs         GeneratedUI[]
+  b2bNegotiations      B2BNegotiation[]
+  moraleHeatmaps       MoraleHeatmap[]
+  onboardingPipelines  ZeroClickOnboarding[]
+  codeOptimizations    CodeOptimizationLog[]
+  roboticsCommands     RoboticsCommand[]
+  spatialOverlays      SpatialOverlay[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  role           String       // OWNER, ADMIN, MEMBER
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  @@unique([userId, organizationId])
+}
+
+model Workspace {
+  id             String       @id @default(cuid())
+  name           String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  projects       Project[]
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  agents      Agent[]
+  workflows   Workflow[]
+}
+
+// AI Assistant
+model Conversation {
+  id        String    @id @default(cuid())
+  title     String?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  role           String       // user, assistant, system
+  content        String
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+// AI Agents & Swarms
+model Swarm {
+  id             String       @id @default(cuid())
+  name           String
+  purpose        String
+  agents         Agent[]
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  goal        String?
+  role        String?  // e.g. RESEARCHER, WRITER, CRITIC (For Swarms)
+  tools       String[] // List of tool names
+  systemPrompt String?
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id])
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  swarmId     String?
+  swarm       Swarm?   @relation(fields: [swarmId], references: [id])
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  status    String   // PENDING, RUNNING, COMPLETED, FAILED
+  result    String?
+  createdAt DateTime @default(now())
+}
+
+// Workflows
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  definition  Json     // Visual graph definition
+  active      Boolean  @default(true)
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id])
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Marketplace
+model AIApp {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  category       String
+  price          Float    @default(0)
+  authorId       String
+  published      Boolean  @default(false)
+  rating         Float    @default(0)
+  installCount   Int      @default(0)
+  createdAt      DateTime @default(now())
+}
+
+// Developer
+model ApiKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  lastUsed  DateTime?
+}
+
+// Office Assistant Mode
+model KnowledgeBase {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  documents      Document[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Document {
+  id              String        @id @default(cuid())
+  title           String
+  content         String?       // Extracted text
+  fileUrl         String
+  vectorId        String?       // Reference to vector store
+  status          String        @default("PROCESSING") // PROCESSING, READY, FAILED
+  knowledgeBaseId String
+  knowledgeBase   KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id])
+  createdAt       DateTime      @default(now())
+}
+
+model Meeting {
+  id             String       @id @default(cuid())
+  title          String
+  date           DateTime
+  transcript     String?
+  summary        String?
+  actionItems    String[]
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model Integration {
+  id             String       @id @default(cuid())
+  provider       String       // GOOGLE, MICROSOFT, SLACK
+  accessToken    String
+  refreshToken   String?
+  scope          String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+// Analytics for productivity
+model ProductivityInsight {
+  id             String       @id @default(cuid())
+  metricName     String
+  value          Float
+  date           DateTime     @default(now())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+// Surveillance Module
+model Camera {
+  id             String       @id @default(cuid())
+  name           String
+  rtspUrl        String
+  location       String?
+  status         String       @default("OFFLINE") // ONLINE, OFFLINE, RECORDING
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  events         SecurityEvent[]
+  createdAt      DateTime     @default(now())
+}
+
+model SecurityEvent {
+  id             String       @id @default(cuid())
+  type           String       // MOTION, INTRUSION, OBJECT_DETECTED
+  description    String?
+  confidence     Float        @default(0)
+  videoClipUrl   String?
+  cameraId       String
+  camera         Camera       @relation(fields: [cameraId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+// Plugin ecosystem
+model Plugin {
+  id               String   @id @default(cuid())
+  name             String
+  description      String
+  category         String   // AGRICULTURE, HOTEL, OFFICE
+  authorId         String
+  price            Float    @default(0)
+  webhooks         Json?    
+  requiredScopes   String[] // E.g ["read:camera", "write:task"]
+  published        Boolean  @default(false)
+  installations    OrganizationPlugin[]
+  createdAt        DateTime @default(now())
+}
+
+model OrganizationPlugin {
+  id             String       @id @default(cuid())
+  plugin         Plugin       @relation(fields: [pluginId], references: [id])
+  pluginId       String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  config         Json?        // Tenant-specific config for plugin
+  isActive       Boolean      @default(true)
+  installedAt    DateTime     @default(now())
+
+  @@unique([pluginId, organizationId])
+}
+
+// 🌌 Futuristic Features
+
+// Hyper-Personalized Cognitive Profiles
+model UserCognitiveProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  preferredDensity String   @default("HIGH") // BULLET_POINTS, HIGH_DETAIL, VISUAL_HEAVY
+  learningStyle    String   @default("TEXT") // TEXT, AUDIO, INTERACTIVE
+  updatedAt        DateTime @updatedAt
+}
+
+// Digital Twin & Sandbox Simulations
+model DigitalTwin {
+  id             String       @id @default(cuid())
+  name           String
+  stateData      Json         // Current snapshot of the organization
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  simulations    SimulationRun[]
+  updatedAt      DateTime     @updatedAt
+}
+
+model SimulationRun {
+  id             String       @id @default(cuid())
+  twinId         String
+  twin           DigitalTwin  @relation(fields: [twinId], references: [id])
+  scenario       String       // e.g. "Shift supply chain to Mexico"
+  result         Json         // Success probability curve and insights
+  createdAt      DateTime     @default(now())
+}
+
+// Sub-Conscious Anomaly Detection (Vexel Instinct)
+model SystemAnomaly {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  description    String       // "Noticed 20% delay on Friday shipments if logistics emails late."
+  confidence     Float
+  isActionable   Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+}
+
+// 🌐 10 NEXT-GEN EXPANSION FEATURES
+
+// 1. Neural Voice Cloning
+model VoiceIdentity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  employeeId     String
+  name           String
+  voiceModelUrl  String       // S3 or Vexel Storage link to synthesized voice
+  createdAt      DateTime     @default(now())
+}
+
+// 2. Blockchain-Backed Audit Trails
+model BlockchainAuditTrail {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  action         String
+  actorId        String       // User or Agent ID
+  hash           String       @unique // Hash on private ledger
+  timestamp      DateTime     @default(now())
+}
+
+// 3. Hyper-Local On-Device AI Modes
+model LocalModelSync {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  deviceId       String
+  modelName      String       // e.g. "Vexel-Llama-3-8B-Distilled"
+  syncStatus     String       @default("COMPLETED")
+  lastSynced     DateTime     @default(now())
+}
+
+// 4. Predictive UI Generation
+model GeneratedUI {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  prompt         String
+  componentCode  String       // React component code string
+  createdAt      DateTime     @default(now())
+}
+
+// 5. Cross-Company AI Negotiation (B2B Swarms)
+model B2BNegotiation {
+  id               String       @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  targetCompany    String
+  objective        String
+  status           String       @default("NEGOTIATING") // NEGOTIATING, AGREED, FAILED
+  termsDict        Json?
+  createdAt        DateTime     @default(now())
+}
+
+// 6. Sentiment & Morale Topography
+model MoraleHeatmap {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  department     String
+  sentimentScore Float        // 0.0 to 1.0
+  burnoutRisk    Float
+  snapshotDate   DateTime     @default(now())
+}
+
+// 7. Zero-Click Onboarding Pipelines
+model ZeroClickOnboarding {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  employeeId     String
+  role           String
+  systemsProvisioned Json
+  completed      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+// 8. Real-Time Code Self-Optimization
+model CodeOptimizationLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  repositoryUrl  String
+  issueDetected  String
+  patchApplied   String
+  status         String       @default("APPLIED")
+  createdAt      DateTime     @default(now())
+}
+
+// 9. Physical Robotics & Drone Command Center
+model RoboticsCommand {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  unitType       String       // DRONE, WAREHOUSE_ARM
+  status         String       @default("IDLE")
+  currentTask    String?
+  telemetry      Json?
+  lastPing       DateTime     @default(now())
+}
+
+// 10. Holographic / AR Spatial Intelligence
+model SpatialOverlay {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  assetId        String       // Mapping to an physical machine
+  arCoordinates  Json         // x,y,z anchors
+  instructions   String       // Floating text/hologram content
+  createdAt      DateTime     @default(now())
+}
