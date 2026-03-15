@@ -130,6 +130,8 @@ export default function Dashboard() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [metrics, setMetrics] = useState(METRICS);
+  const [alerts, setAlerts] = useState(INSTINCT_ALERTS);
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -142,6 +144,28 @@ export default function Dashboard() {
       }]);
     }
   }, [lang]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const BASE_URL = 'http://localhost:5000/api/v1/workspaces';
+      const [mRes, aRes] = await Promise.all([
+        fetch(`${BASE_URL}/metrics`),
+        fetch(`${BASE_URL}/alerts`)
+      ]);
+      const mData = await mRes.json();
+      const aData = await aRes.json();
+      setMetrics(mData);
+      setAlerts(aData);
+    } catch (e) {
+      console.error("Failed to fetch dashboard data:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 30000); // 30s refresh
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -156,7 +180,8 @@ export default function Dashboard() {
 
     try {
       // In production we would use process.env.NEXT_PUBLIC_API_URL
-      const response = await fetch('https://vexel-one-api.vercel.app/api/v1/ai/chat' || 'http://localhost:5000/api/v1/ai/chat', {
+      const API_URL = 'http://localhost:5000/api/v1/ai/chat';
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg, lang })
@@ -339,8 +364,8 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-sm text-white/70 truncate">
-                  <span className="font-semibold text-red-300">{INSTINCT_ALERTS[0].confidence}% confidence: </span>
-                  {INSTINCT_ALERTS[0].text}
+                  <span className="font-semibold text-red-300">{alerts[0]?.confidence || 88}% confidence: </span>
+                  {alerts[0]?.text || 'Initializing Instinct scan...'}
                 </p>
               </div>
               <button className="shrink-0 text-xs text-white/40 hover:text-white transition-colors mono">{t.run_simulation} →</button>
@@ -524,7 +549,7 @@ export default function Dashboard() {
             <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-3">{t.live_metrics}</p>
               <div className="grid grid-cols-2 gap-2">
-                {METRICS.map(m => (
+                {metrics.map(m => (
                   <div key={m.id} className="metric-card glass rounded-xl p-3 cursor-default">
                     <p className="text-[10px] text-white/40 font-medium">{t.metrics[m.id as keyof typeof t.metrics]}</p>
                     <p className="text-xl font-bold text-white mt-1">{m.value}</p>
@@ -538,10 +563,10 @@ export default function Dashboard() {
             <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">{t.instinct_alerts}</p>
-                <span className="badge warning">{INSTINCT_ALERTS.length} {lang === 'en' ? 'new' : 'sabo'}</span>
+                <span className="badge warning">{alerts.length} {lang === 'en' ? 'new' : 'sabo'}</span>
               </div>
               <div className="space-y-2">
-                {INSTINCT_ALERTS.map((a, i) => (
+                {alerts.map((a, i) => (
                   <div key={i} className="glass glass-hover rounded-xl p-3 cursor-pointer">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-400">{a.tag}</span>
