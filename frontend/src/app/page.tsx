@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import SecurityModule from './components/SecurityModule';
+import FarmsModule from './components/FarmsModule';
 
 const FormattedText = ({ text }: { text: string }) => {
   if (!text) return null;
@@ -42,6 +44,7 @@ const TRANSLATIONS = {
       twin: "Digital Twin",
       marketplace: "Marketplace",
       expansion: "Lab Expansions",
+      farms: "Kido Farms",
       vexelgroup: "Vexel Group"
     },
     metrics: {
@@ -73,9 +76,10 @@ const TRANSLATIONS = {
       workflows: "Hanyoyin Aiki",
       security: "Tsaro da Kamara",
       twin: "Tagwayen Na'ura",
-      marketplace: "Kasuwarmu",
-      expansion: "Lab Expansions",
-      vexelgroup: "Rukunin Vexel"
+      marketplace: "Kasuwa",
+      expansion: "Fadada Lab",
+      farms: "Kido Farms",
+      vexelgroup: "Vexel Group"
     },
     metrics: {
       agents: "Wakilai Masu Aiki",
@@ -95,6 +99,7 @@ const MODULES = [
   { id: 'twin', label: 'twin', icon: '⬢', color: '#fbbf24', glow: 'rgba(251,191,36,0.3)' },
   { id: 'marketplace', label: 'marketplace', icon: '⊞', color: '#f472b6', glow: 'rgba(244,114,182,0.3)' },
   { id: 'expansion', label: 'expansion', icon: '✧', color: '#c084fc', glow: 'rgba(192,132,252,0.3)' },
+  { id: 'farms', label: 'farms', icon: '🥬', color: '#10b981', glow: 'rgba(16,185,129,0.3)' },
   { id: 'vexelgroup', label: 'vexelgroup', icon: '🛡️', color: '#fbbf24', glow: 'rgba(251,191,36,0.3)' },
 ];
 
@@ -148,14 +153,28 @@ export default function Dashboard() {
     setInput('');
     setMessages(p => [...p, { role: 'user', text: userMsg, time: 'Just now' }]);
     setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
+
+    try {
+      // In production we would use process.env.NEXT_PUBLIC_API_URL
+      const response = await fetch('https://vexel-one-api.vercel.app/api/v1/ai/chat' || 'http://localhost:5000/api/v1/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg, lang })
+      });
+      const data = await response.json();
+      setMessages(p => [...p, data]);
+    } catch (error) {
+      console.error("AI Grid Error:", error);
       setMessages(p => [...p, {
         role: 'assistant',
-        text: 'I\'m processing your request across the Vexel intelligence grid. Cross-referencing your organization data, running Instinct pattern analysis, and preparing a contextual response...',
-        time: 'Just now'
+        text: lang === 'en'
+          ? "I'm having trouble connecting to the Vexel Quantum Engine. Please check your connectivity."
+          : "Ina samun matsala wajen haɗawa da Injin Vexel Quantum. Da fatan za a duba haɗin yanar gizo na ku.",
+        time: 'System Error'
       }]);
-    }, 2000);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const activeModuleData = MODULES.find(m => m.id === activeModule) || MODULES[0];
@@ -401,6 +420,10 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+              ) : activeModule === 'security' ? (
+                <SecurityModule lang={lang} />
+              ) : activeModule === 'farms' ? (
+                <FarmsModule lang={lang} />
               ) : (
                 <>
                   {messages.map((msg, i) => (
