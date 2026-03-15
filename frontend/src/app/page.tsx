@@ -147,7 +147,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const BASE_URL = 'http://localhost:5000/api/v1/workspaces';
+      const BASE_URL = 'https://vexel-one-api.vercel.app/api/v1/workspaces';
       const [mRes, aRes] = await Promise.all([
         fetch(`${BASE_URL}/metrics`),
         fetch(`${BASE_URL}/alerts`)
@@ -180,7 +180,7 @@ export default function Dashboard() {
 
     try {
       // In production we would use process.env.NEXT_PUBLIC_API_URL
-      const API_URL = 'http://localhost:5000/api/v1/ai/chat';
+      const API_URL = 'https://vexel-one-api.vercel.app/api/v1/ai/chat';
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
