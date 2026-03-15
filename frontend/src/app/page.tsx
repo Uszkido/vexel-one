@@ -2,6 +2,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
+const FormattedText = ({ text }: { text: string }) => {
+  if (!text) return null;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return (
+    <span style={{ whiteSpace: 'pre-wrap' }}>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={i} className="text-indigo-400 font-bold drop-shadow-[0_0_8px_rgba(129,140,248,0.2)]">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      })}
+    </span>
+  );
+};
+
 const TRANSLATIONS = {
   en: {
     welcome: "Welcome back. I'm Vexel — your enterprise AI operating system, developed by **Usama Ado Shehu** and the **Vexel Innovations** team. I have **5 active Instinct alerts**, **12 swarm agents** running, and **3 workflows** awaiting your approval.\n\nHow can I accelerate your work today?",
@@ -72,15 +87,15 @@ const TRANSLATIONS = {
 };
 
 const MODULES = [
-  { id: 'assistant', label: 'assistant', icon: '✦', color: '#6366f1', glow: 'rgba(99,102,241,0.3)' },
-  { id: 'swarm', label: 'swarm', icon: '◈', color: '#8b5cf6', glow: 'rgba(139,92,246,0.3)' },
-  { id: 'agents', label: 'agents', icon: '⬡', color: '#0ea5e9', glow: 'rgba(14,165,233,0.3)' },
-  { id: 'workflows', label: 'workflows', icon: '⌬', color: '#10b981', glow: 'rgba(16,185,129,0.3)' },
-  { id: 'security', label: 'security', icon: '◉', color: '#ef4444', glow: 'rgba(239,68,68,0.3)' },
-  { id: 'twin', label: 'twin', icon: '⬢', color: '#f59e0b', glow: 'rgba(245,158,11,0.3)' },
-  { id: 'marketplace', label: 'marketplace', icon: '⊞', color: '#ec4899', glow: 'rgba(236,72,153,0.3)' },
-  { id: 'expansion', label: 'expansion', icon: '✶', color: '#a78bfa', glow: 'rgba(167,139,250,0.3)' },
-  { id: 'vexelgroup', label: 'vexelgroup', icon: '🛡️', color: '#fcd34d', glow: 'rgba(252,211,77,0.3)' },
+  { id: 'assistant', label: 'assistant', icon: '✦', color: '#818cf8', glow: 'rgba(129,140,248,0.3)' },
+  { id: 'swarm', label: 'swarm', icon: '◈', color: '#a78bfa', glow: 'rgba(167,139,250,0.3)' },
+  { id: 'agents', label: 'agents', icon: '⬡', color: '#38bdf8', glow: 'rgba(56,189,248,0.3)' },
+  { id: 'workflows', label: 'workflows', icon: '⌬', color: '#34d399', glow: 'rgba(52,211,153,0.3)' },
+  { id: 'security', label: 'security', icon: '⊙', color: '#fb7185', glow: 'rgba(251,113,133,0.3)' },
+  { id: 'twin', label: 'twin', icon: '⬢', color: '#fbbf24', glow: 'rgba(251,191,36,0.3)' },
+  { id: 'marketplace', label: 'marketplace', icon: '⊞', color: '#f472b6', glow: 'rgba(244,114,182,0.3)' },
+  { id: 'expansion', label: 'expansion', icon: '✧', color: '#c084fc', glow: 'rgba(192,132,252,0.3)' },
+  { id: 'vexelgroup', label: 'vexelgroup', icon: '🛡️', color: '#fbbf24', glow: 'rgba(251,191,36,0.3)' },
 ];
 
 const METRICS = [
@@ -240,12 +255,12 @@ export default function Dashboard() {
 
           {/* Vexel Innovations branding */}
           {!sidebarCollapsed && (
-            <div className="mt-3 pt-3 flex flex-col gap-1 px-1" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-              <div className="flex items-center gap-2">
-                <img src="/vexel-inno.svg" alt="Vexel Innovations" className="w-4 h-4 opacity-40 shrink-0" />
-                <p className="text-[9px] text-white/30 font-bold tracking-widest uppercase">Vexel Innovations</p>
+            <div className="mt-4 pt-4 px-1" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <img src="/vexel-inno.svg" alt="Vexel Innovations" className="w-3.5 h-3.5 opacity-50 shrink-0" />
+                <p className="text-[9px] text-white/40 font-bold tracking-[0.2em] uppercase">Vexel Innovations</p>
               </div>
-              <p className="text-[8px] text-white/20 font-medium">{t.lead_dev}: Usama Ado Shehu</p>
+              <p className="text-[8px] text-white/20 font-medium tracking-tight px-5">{t.lead_dev}: Usama Ado Shehu</p>
             </div>
           )}
         </div>
@@ -297,11 +312,11 @@ export default function Dashboard() {
           {/* ─── CHAT AREA ─── */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Vexel Instinct Bar */}
-            <div className="shrink-0 px-6 py-3 flex items-center gap-3"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: 'rgba(239,68,68,0.04)' }}>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" style={{ boxShadow: '0 0 8px #ef4444' }} />
-                <span className="text-[11px] font-bold tracking-widest text-red-400 uppercase">Vexel Instinct</span>
+            <div className="shrink-0 px-6 py-2.5 flex items-center gap-3"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: 'linear-gradient(90deg, rgba(239,68,68,0.07), transparent)' }}>
+              <div className="flex items-center gap-2 shrink-0 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" style={{ boxShadow: '0 0 6px #ef4444' }} />
+                <span className="text-[9px] font-black tracking-widest text-red-500 uppercase">Instinct</span>
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-sm text-white/70 truncate">
@@ -397,9 +412,11 @@ export default function Dashboard() {
                           <span className="text-sm">✦</span>
                         </div>
                       )}
-                      <div className={`chat-bubble ${msg.role}`}>
-                        <p className="text-sm leading-relaxed text-white/85" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
-                        <p className="text-[10px] text-white/25 mt-2 mono">{msg.time}</p>
+                      <div className={`chat-bubble ${msg.role} p-4 rounded-2xl`}>
+                        <p className="text-[13px] leading-relaxed text-white/90">
+                          <FormattedText text={msg.text} />
+                        </p>
+                        <p className="text-[9px] text-white/20 mt-2.5 font-mono tracking-tighter uppercase">{msg.time}</p>
                       </div>
                       {msg.role === 'user' && (
                         <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold"
